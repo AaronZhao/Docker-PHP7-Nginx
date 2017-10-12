@@ -1,0 +1,31 @@
+FROM centos:latest
+MAINTAINER <zhaowei@outlook.com>
+
+# 下载并解压软件包
+RUN yum install -y wget gcc gcc-c++ make openssl-devel \
+    && wget -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo \
+    && yum update \
+    && wget http://nginx.org/download/nginx-1.13.3.tar.gz \
+    && wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.37.tar.gz \
+    && wget http://cn2.php.net/get/php-7.1.7.tar.gz/from/a/mirror \
+    && mv *.gz /usr/local/src \
+    && cd /usr/local/src \
+    && tar zxvf nginx-1.13.3.tar.gz \
+    && tar zxvf pcre-8.37.tar.gz \
+    && tar zxvf php-7.1.7.tar.gz \
+    && rm -f nginx-1.13.3.tar.gz pcre-8.37.tar.gz php-7.1.7.tar.gz
+
+# 安装 Nginx
+RUN groupadd -r nginx \
+    && useradd -r -g nginx nginx \
+    && cd nginx-1.13.3 \
+    && ./configure --prefix=/usr/local/nginx --user=nginx --group=nginx --with-http_ssl_module --with-http_stub_status_module --with-pcre=/usr/local/src/pcre-8.37 \
+    && echo "daemon off;" >> /usr/local/nginx/conf/nginx.conf \
+    && cd ..
+
+# 安装 PHP
+RUN yum install -y bison bison-devel zlib-devel libmcrypt-devel mcrypt mhash-devel libxml2-devel libcurl-devel bzip2-devel readline-devel libedit-devel sqlite-devel \
+    && cd ./php-7.1.7 \
+    && ./configure --prefix=/usr/local/php --with-zlib-dir --with-freetype-dir --enable-mbstring --with-libxml-dir=/usr/local/libxml --enable-soap --enable-calendar --with-curl --with-mcrypt --with-zlib --with-gd  --disable-rpath --enable-inline-optimization --with-bz2 --with-zlib --enable-sockets --enable-sysvsem --enable-sysvshm --enable-pcntl --enable-mbregex --enable-exif --enable-bcmath --with-mhash --enable-zip --with-pcre-regex --with-mysql --with-pdo-mysql --with-mysqli --with-jpeg-dir=/usr/local/libjpeg --with-png-dir=/usr/local/libpng --enable-gd-native-ttf --with-openssl --with-fpm-user=www --with-fpm-group=www --with-libdir=lib64 --enable-ftp --with-imap --with-imap-ssl --with-kerberos --with-gettext --with-xmlrpc --with-xsl --enable-opcache --enable-fpm --enable-xml --enable-shmop --enable-session --enable-ctype --with-iconv-dir --with-iconv \
+    && make \
+    && make install
