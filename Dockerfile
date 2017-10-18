@@ -2,6 +2,7 @@ FROM centos:7
 MAINTAINER zhaowei@outlook.com
 RUN rpm -Uvh https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-7.noarch.rpm \
 	&& rpm -Uvh https://sp.repo.webtatic.com/yum/el7/webtatic-release.rpm \
+	&& yum update -y \
 	&& yum install -y wget \
 		sed \ 
 		gcc \
@@ -29,6 +30,7 @@ RUN rpm -Uvh https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-7.noa
 		php71w-devel \	
 		php71w-mbstring \
 		php71w-mcrypt \
+	&& yum update -y ntp ntpdate kernel-headers \
 	&& yum clean all \
 	&& sed -i 's/http_access deny all/#http_access deny all/g' /etc/squid/squid.conf \
 	&& cd /tmp \
@@ -51,7 +53,9 @@ RUN rpm -Uvh https://mirrors.tuna.tsinghua.edu.cn/epel/epel-release-latest-7.noa
 	&& echo "" >> /etc/php.ini \
 	&& echo "extension=redis.so" >> /etc/php.ini \
 	&& echo "extension=yaf.so" >> /etc/php.ini \
-	&& echo "extension=mongodb.so" >> /etc/php.ini 
+	&& echo "extension=mongodb.so" >> /etc/php.ini \
+	&& echo "[yaf]" >> /etc/php.ini \
+ 	&& echo "yaf.use_namespace = 1" >> /etc/php.ini 
 COPY ./supervisord.conf /etc/
 COPY ./default.conf /etc/nginx/conf.d/
 COPY ./nginx.conf /etc/supervisor.d/
